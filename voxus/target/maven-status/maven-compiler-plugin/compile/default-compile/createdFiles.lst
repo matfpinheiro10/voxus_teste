@@ -1,0 +1,8 @@
+com/voxus/Application.class
+com/voxus/service/TaskServiceBean.class
+com/voxus/model/Priority.class
+com/voxus/model/Users.class
+com/voxus/repository/TaskRepository.class
+com/voxus/web/TaskController.class
+com/voxus/service/TaskService.class
+com/voxus/model/Task.class

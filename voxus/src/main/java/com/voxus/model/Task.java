@@ -26,7 +26,7 @@ public class Task implements Serializable {
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "idUser", nullable = false)
-	private Users user;
+	private User user;
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "idPriority")
@@ -44,11 +44,11 @@ public class Task implements Serializable {
 		this.id = id;
 	}
 
-	public Users getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	public void setUser(Users user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 

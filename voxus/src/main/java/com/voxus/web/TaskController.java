@@ -1,29 +1,66 @@
 package com.voxus.web;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.voxus.model.Task;
 import com.voxus.service.TaskService;
 
-@RestController
+@Controller
+@ControllerAdvice
 public class TaskController {
 
 	@Autowired
 	private TaskService taskService;
+	
+	private Map<Long, Task> taskMap = new HashMap<>();
 
-	//Recupera uma task pelo id passado como parametro na url.
+	// Cria uma task atraves do JSON passado pelo body da chamada.
+	@RequestMapping(value = "/createTask", method = RequestMethod.POST)
+	public ResponseEntity<String> createTask(@ModelAttribute("task") Task task, UriComponentsBuilder ucBuilder,
+			ModelMap model) {
+
+		if (taskService.isTaskExist(task)) {
+			return new ResponseEntity<String>(HttpStatus.CONFLICT);
+		}
+
+		model.addAttribute("title", task.getTitle());
+		model.addAttribute("priority", task.getPriority());
+		model.addAttribute("description", task.getDescription());
+		model.addAttribute("User", task.getUser());
+
+		taskMap.put(task.getId(), task);
+		
+		taskService.saveTask(task);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setLocation(ucBuilder.path("/task/{id}").buildAndExpand(task.getId()).toUri());
+		return new ResponseEntity<String>("Task criada com sucesso!", headers, HttpStatus.CREATED);
+	}
+
+	@ModelAttribute
+	public void addAttributes(Model model) {
+		model.addAttribute("msg", "Welcome to the Netherlands!");
+	}
+
+	// Recupera uma task pelo id passado como parametro na url.
 	@RequestMapping(value = "/task/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Task> getTask(@PathVariable("id") long id) {
 
@@ -37,22 +74,7 @@ public class TaskController {
 
 	}
 
-	//Cria uma task atraves do JSON passado pelo body da chamada.
-	@RequestMapping(value = "/createTask/", method = RequestMethod.POST)
-	public ResponseEntity<String> createTask(@RequestBody Task task, UriComponentsBuilder ucBuilder) {
-
-		if (taskService.isTaskExist(task)) {
-			return new ResponseEntity<String>(HttpStatus.CONFLICT);
-		}
-
-		taskService.saveTask(task);
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(ucBuilder.path("/task/{id}").buildAndExpand(task.getId()).toUri());
-		return new ResponseEntity<String>("Task criada com sucesso!", headers, HttpStatus.CREATED);
-	}
-
-	//Recupera uma task pelo id e depois faz a atualização.
+	// Recupera uma task pelo id e depois faz a atualização.
 	@RequestMapping(value = "/task/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Task> updateTask(@PathVariable("id") long id, @RequestBody Task task) {
 		System.out.println("Updating Task " + id);
@@ -73,7 +95,7 @@ public class TaskController {
 		return new ResponseEntity<Task>(currentTask, HttpStatus.OK);
 	}
 
-	//Exclui uma task pelo id passado como parametro na url.
+	// Exclui uma task pelo id passado como parametro na url.
 	@RequestMapping(value = "/taskRemove/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<String> deleteTask(@PathVariable("id") long id) {
 
@@ -84,11 +106,11 @@ public class TaskController {
 		}
 
 		taskService.deleteTaskById(id);
-		
+
 		return new ResponseEntity<String>("Task deletada com sucesso.", HttpStatus.NO_CONTENT);
 	}
 
-	//Recupera todas as Task cadastradas no banco.
+	// Recupera todas as Task cadastradas no banco.
 	@RequestMapping(value = "/taskList/", method = RequestMethod.GET)
 	public ResponseEntity<List<Task>> getListTasks() {
 
