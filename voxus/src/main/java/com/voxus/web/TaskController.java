@@ -55,10 +55,6 @@ public class TaskController {
 		return new ResponseEntity<String>("Task criada com sucesso!", headers, HttpStatus.CREATED);
 	}
 
-	@ModelAttribute
-	public void addAttributes(Model model) {
-		model.addAttribute("msg", "Welcome to the Netherlands!");
-	}
 
 	// Recupera uma task pelo id passado como parametro na url.
 	@RequestMapping(value = "/task/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
